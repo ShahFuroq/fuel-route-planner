@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Fuel route plan</title>
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+  <style>
+    html, body { height: 100%; margin: 0; font: 14px/1.4 system-ui, sans-serif; color: #1c1c1c; }
+    .layout { display: flex; height: 100%; }
+    #map { flex: 1; }
+    aside { width: 340px; overflow-y: auto; padding: 16px; box-sizing: border-box; border-left: 1px solid #ddd; }
+    h1 { font-size: 17px; margin: 0 0 4px; }
+    .muted { color: #666; }
+    .totals { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 14px 0; }
+    .totals div { background: #f4f5f7; border-radius: 6px; padding: 8px 10px; }
+    .totals b { display: block; font-size: 17px; }
+    ol { padding-left: 20px; margin: 0; }
+    li { margin-bottom: 10px; }
+    .error { padding: 24px; }
+    @media (max-width: 760px) { .layout { flex-direction: column; } aside { width: 100%; height: 45%; border-left: 0; border-top: 1px solid #ddd; } }
+  </style>
+</head>
+<body>
+{% if error %}
+  <p class="error">{{ error }}</p>
+{% else %}
+  <div class="layout">
+    <div id="map"></div>
+    <aside>
+      <h1>{{ plan.start.name }} to {{ plan.finish.name }}</h1>
+      <div class="muted">{{ plan.distance_miles }} miles, about {{ plan.duration_hours }} hours of driving</div>
+      <div class="totals">
+        <div><b>${{ plan.fuel.total_cost|floatformat:2 }}</b>fuel cost</div>
+        <div><b>{{ plan.fuel.total_gallons|floatformat:1 }} gal</b>fuel bought</div>
+        <div><b>{{ plan.fuel.stop_count }}</b>fuel stops</div>
+        <div><b>${{ plan.fuel.average_price_paid|floatformat:3 }}</b>average per gallon</div>
+      </div>
+      <ol>
+        {% for stop in plan.stops %}
+        <li>
+          <b>{{ stop.name }}</b><br>
+          {{ stop.city }}, {{ stop.state }} &middot; mile {{ stop.mile_marker|floatformat:0 }}<br>
+          {{ stop.gallons|floatformat:1 }} gal at ${{ stop.price_per_gallon|floatformat:3 }} = ${{ stop.cost|floatformat:2 }}
+        </li>
+        {% endfor %}
+      </ol>
+    </aside>
+  </div>
+  {{ plan|json_script:"plan-data" }}
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script>
+    const plan = JSON.parse(document.getElementById("plan-data").textContent);
+    const map = L.map("map");
+    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 18,
+      attribution: "&copy; OpenStreetMap contributors"
+    }).addTo(map);
+    const line = L.geoJSON(plan.route, { style: { color: "#1f6feb", weight: 4 } }).addTo(map);
+    map.fitBounds(line.getBounds(), { padding: [24, 24] });
+    const endpoint = (place, label) =>
+      L.circleMarker([place.lat, place.lng], { radius: 8, color: "#111", fillColor: "#fff", fillOpacity: 1 })
+        .addTo(map).bindPopup(label + ": " + place.name);
+    endpoint(plan.start, "Start");
+    endpoint(plan.finish, "Finish");
+    plan.stops.forEach((stop) => {
+      L.marker([stop.lat, stop.lng]).addTo(map).bindPopup(
+        "<b>" + stop.order + ". " + stop.name + "</b><br>" + stop.city + ", " + stop.state +
+        "<br>" + stop.gallons.toFixed(1) + " gal at $" + stop.price_per_gallon.toFixed(3) +
+        " = $" + stop.cost.toFixed(2)
+      );
+    });
+  </script>
+{% endif %}
+</body>
+</html>
