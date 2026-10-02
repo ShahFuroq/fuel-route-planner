@@ -7,9 +7,11 @@ A Django API that takes a start and a finish location in the USA and returns the
 ![Django](https://img.shields.io/badge/django-6.1-0C4B33)
 ![DRF](https://img.shields.io/badge/DRF-3.18-A30000)
 
-[Requirements](#requirements-checklist) · [Quick start](#quick-start) · [API](#api-reference) · [How it works](#how-it-works) · [Results](#results-and-performance) · [Structure](#project-structure) · [Testing](#testing-and-ci) · [With more time](#with-more-time)
+[Demo video](https://www.loom.com/share/73064ea41fcf48978c309a1eb94a63e2) · [Requirements](#requirements-checklist) · [Quick start](#quick-start) · [API](#api-reference) · [How it works](#how-it-works) · [Results](#results-and-performance) · [Structure](#project-structure) · [Testing](#testing-and-ci) · [With more time](#with-more-time)
 
 ![New York to Los Angeles: the route and eight fuel stops on a map](docs/images/route-map.png)
+
+**Demo video:** [5-minute walkthrough on Loom](https://www.loom.com/share/73064ea41fcf48978c309a1eb94a63e2), showing the API in Postman and a short code overview.
 
 ## Highlights
 
