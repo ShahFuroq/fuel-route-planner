@@ -23,7 +23,7 @@ Then open or request:
 http://127.0.0.1:8000/api/route/?start=New York, NY&finish=Los Angeles, CA
 ```
 
-A Postman collection is in `postman/`. Run the tests with `python manage.py test`.
+Interactive API docs (Swagger UI) are at `http://127.0.0.1:8000/api/docs/`, where the endpoint can be tried in the browser. A Postman collection is in `postman/`.
 
 ## API
 
@@ -70,11 +70,22 @@ Response (shortened):
 
 `route` is GeoJSON, thinned to at most 1,500 points. `map_url` opens the same plan on a map.
 
-Errors: `400` for input that is missing, unreadable, unknown, or outside the 48 contiguous states; `422` when some stretch of the route has no station within range; `502`/`504` when the routing service fails or times out.
+Errors return a JSON body with an `error` message:
+
+| Status | When |
+|---|---|
+| `400` | Input is missing, unreadable, unknown, or outside the 48 contiguous states. Validation errors add a `details` object naming the field. |
+| `422` | A stretch of the route has no station within range. The body gives the `gap` in miles. |
+| `502` / `504` | The routing service failed or timed out. |
+| `503` | Fuel station data has not been loaded. |
 
 ### `GET /api/route/map/`
 
 Same parameters. Renders the route and the fuel stops on a Leaflet map. It reuses the cached route, so it adds no routing call.
+
+### `GET /api/docs/` and `GET /api/schema/`
+
+Swagger UI and the OpenAPI 3 schema, generated from the serializers.
 
 ## How it works
 
@@ -123,11 +134,49 @@ The tests check the optimizer against an independent textbook greedy algorithm (
 
 Everything has a working default. Optional settings go in `.env` (see `.env.example`):
 
-- `DATABASE_URL` switches from SQLite to PostgreSQL. SQLite is the default so the project runs with no setup. The automated tests and the timings above were run on SQLite only.
-- `REDIS_URL` switches the cache from in-process memory to Redis, which is what a multi-process deployment needs.
-- `OSRM_BASE_URL`, `OSRM_TIMEOUT_SECONDS`, `DEFAULT_STOP_PENALTY`.
+- `DATABASE_URL` switches from SQLite to PostgreSQL. SQLite is the default so the project runs with no setup. CI runs the test suite and the data load on both.
+- `REDIS_URL` switches the cache from in-process memory to Redis (needs `pip install redis`), which is what a multi-process deployment needs. This path is configured but has not been exercised.
+- `OSRM_BASE_URL`, `OSRM_TIMEOUT_SECONDS`, `DEFAULT_STOP_PENALTY`, `LOG_LEVEL`.
 
-PostGIS is not used. The spatial work is a 15 ms grid lookup over 6,626 points, which does not justify the extra setup.
+The timings in this README were measured on SQLite with the in-memory cache.
+
+PostGIS is not used. The spatial work is a 15 ms in-memory grid lookup over 6,626 points, which does not justify the extra setup.
+
+## Design
+
+The code is split so that each part can be read, tested and replaced on its own:
+
+- **Services hold the logic and know nothing about HTTP.** `optimizer.py` and `geometry.py` are plain Python with no Django imports. `planner.py` only orchestrates the steps and returns a typed `TripPlan`.
+- **Serializers own the API contract.** One validates the query; another shapes the `TripPlan` into the response. The OpenAPI schema is generated from them, so the docs cannot drift from the code.
+- **Errors are mapped in one place** (`errors.py`). Services raise their own exceptions; a DRF exception handler turns them into status codes. The map page uses the same mapping.
+- **The database is the source of truth; memory is the working copy.** Stations are read once per process into a grid index. No spatial queries run per request, which is why the station table has no lookup indexes beyond its unique ID.
+- **The routing provider is behind one function** (`fetch_route`) and one setting, so it can be replaced without touching the planner.
+
+Logging goes to the console: one line per planned trip (distance, stops, cost, routing calls, time) and a warning whenever the routing service fails.
+
+## Development
+
+```bash
+pip install -r requirements-dev.txt
+ruff check . && ruff format --check .   # lint and formatting
+python manage.py test                   # 66 tests, no network needed
+```
+
+CI runs the linter, then the tests on SQLite and on PostgreSQL.
+
+## Next steps
+
+Left out on purpose to keep the scope to what was asked. In order of what I would add first for production:
+
+1. **Rate limiting** (DRF throttling). The endpoint is public and each uncached request calls a third-party service.
+2. **A shared cache and a route table.** Redis for the cache, and routes persisted in PostgreSQL, so results survive restarts and are shared across workers.
+3. **A self-hosted OSRM or a paid routing provider** with an uptime guarantee, plus a retry with backoff.
+4. **Exact station positions.** About half the addresses name an interstate exit, which could be matched to OpenStreetMap junctions offline.
+5. **Cache invalidation by data version** instead of clearing the cache when prices are reloaded.
+6. **Docker Compose** with PostgreSQL and Redis for a one-command setup.
+7. **API versioning** (`/api/v1/`) before a second client depends on the contract.
+8. **Subresource integrity hashes** on the map page's CDN assets, or self-hosting them.
+9. **Warm-up on start.** The first request after a restart is slower (about 3 seconds measured once) because the place file and station index load on first use.
 
 ## Layout
 
@@ -142,8 +191,11 @@ routing/
     geometry.py                 polyline decoding, distances, mile markers
     corridor.py                 stations near the route
     optimizer.py                fuel stop selection
-    planner.py                  ties the steps together, with caching
-  serializers.py, views.py, urls.py
+    trip.py                     the result types (TripPlan, FuelStop)
+    planner.py                  orchestrates the steps, with caching
+  serializers.py                query validation and response shape
+  errors.py                     exception to HTTP status mapping
+  views.py, urls.py
   templates/routing/map.html
   tests/
 data/                           fuel price CSV, GeoNames place file
