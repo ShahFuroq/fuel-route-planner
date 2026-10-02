@@ -7,11 +7,9 @@ A Django API that takes a start and a finish location in the USA and returns the
 ![Django](https://img.shields.io/badge/django-6.1-0C4B33)
 ![DRF](https://img.shields.io/badge/DRF-3.18-A30000)
 
-[Demo video](https://www.loom.com/share/73064ea41fcf48978c309a1eb94a63e2) · [Requirements](#requirements-checklist) · [Quick start](#quick-start) · [API](#api-reference) · [How it works](#how-it-works) · [Results](#results-and-performance) · [Structure](#project-structure) · [Testing](#testing-and-ci) · [With more time](#with-more-time)
+[Demo video](#demo-video) · [Requirements](#requirements-checklist) · [Quick start](#quick-start) · [API](#api-reference) · [How it works](#how-it-works) · [Results](#results-and-performance) · [Structure](#project-structure) · [Testing](#testing-and-ci) · [With more time](#with-more-time)
 
 ![New York to Los Angeles: the route and eight fuel stops on a map](docs/images/route-map.png)
-
-**Demo video:** [5-minute walkthrough on Loom](https://www.loom.com/share/73064ea41fcf48978c309a1eb94a63e2), showing the API in Postman and a short code overview.
 
 ## Highlights
 
@@ -19,6 +17,14 @@ A Django API that takes a start and a finish location in the USA and returns the
 - **An exact optimizer.** The stops are the provably cheapest for the stated objective, not a greedy guess, and the tests check it against exhaustive search.
 - **About 1 second for a cross-country route**, almost all of it the routing call. Local processing is about 60 ms; a cached request takes about 3 ms.
 - **66 tests**, run in CI on SQLite and PostgreSQL, with lint and format checks.
+
+## Demo video
+
+A 5-minute walkthrough: the API in Postman, the map page, and a short code overview. Click the image to watch it on Loom.
+
+<a href="https://www.loom.com/share/73064ea41fcf48978c309a1eb94a63e2">
+  <img src="docs/images/demo-video.jpg" alt="Watch the 5-minute demo video on Loom" width="720">
+</a>
 
 ## The assignment
 
