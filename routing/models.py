@@ -17,9 +17,14 @@ class FuelStation(models.Model):
     longitude = models.FloatField()
 
     class Meta:
-        indexes = [
-            models.Index(fields=["state"]),
-            models.Index(fields=["latitude", "longitude"]),
+        # No lookup indexes beyond the unique opis_id: the planner reads every
+        # station once per process and searches them in memory.
+        constraints = [
+            models.CheckConstraint(condition=models.Q(price__gt=0), name="fuel_station_price_positive"),
+            models.CheckConstraint(
+                condition=models.Q(latitude__gte=-90, latitude__lte=90, longitude__gte=-180, longitude__lte=180),
+                name="fuel_station_coordinates_valid",
+            ),
         ]
 
     def __str__(self) -> str:
