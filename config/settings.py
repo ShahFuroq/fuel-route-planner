@@ -34,6 +34,7 @@ INSTALLED_APPS = [
     "django.contrib.contenttypes",
     "django.contrib.staticfiles",
     "rest_framework",
+    "drf_spectacular",
     "routing",
 ]
 
@@ -95,6 +96,14 @@ REST_FRAMEWORK = {
     "DEFAULT_PERMISSION_CLASSES": [],
     "UNAUTHENTICATED_USER": None,
     "EXCEPTION_HANDLER": "routing.errors.api_exception_handler",
+    "DEFAULT_SCHEMA_CLASS": "drf_spectacular.openapi.AutoSchema",
+}
+
+SPECTACULAR_SETTINGS = {
+    "TITLE": "Fuel Route Planner API",
+    "DESCRIPTION": "Plans a US driving route and the cheapest fuel stops along it.",
+    "VERSION": "1.0.0",
+    "SERVE_INCLUDE_SCHEMA": False,
 }
 
 LOGGING = {

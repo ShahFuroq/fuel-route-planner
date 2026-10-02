@@ -1,5 +1,6 @@
 from django.shortcuts import render
 from django.views import View
+from drf_spectacular.utils import OpenApiResponse, extend_schema
 from rest_framework.request import Request
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -20,6 +21,23 @@ def plan_from_query(query_params) -> TripResult:
 class RoutePlanView(APIView):
     """Plan a driving route and the cheapest fuel stops along it."""
 
+    @extend_schema(
+        summary="Plan a route with fuel stops",
+        description=(
+            "Returns the driving route between two US locations, the fuel stops that minimise cost "
+            "for a vehicle with a 500-mile range at 10 mpg, and the total fuel cost. "
+            "Makes one routing API call, or none when the route is cached."
+        ),
+        parameters=[RouteQuerySerializer],
+        responses={
+            200: TripResultSerializer,
+            400: OpenApiResponse(description="Missing, unreadable, unknown or unsupported location or parameter."),
+            422: OpenApiResponse(description="A stretch of the route has no fuel station within range."),
+            502: OpenApiResponse(description="The routing service failed."),
+            503: OpenApiResponse(description="Fuel station data has not been loaded."),
+            504: OpenApiResponse(description="The routing service timed out."),
+        },
+    )
     def get(self, request: Request) -> Response:
         result = plan_from_query(request.query_params)
         return Response(TripResultSerializer(result, context={"request": request}).data)

@@ -2,6 +2,7 @@
 
 from django.conf import settings
 from django.urls import reverse
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
 from routing.services.trip import TripPlan, TripResult
@@ -106,16 +107,19 @@ class TripResultSerializer(serializers.Serializer):
     map_url = serializers.SerializerMethodField()
     meta = serializers.SerializerMethodField()
 
+    @extend_schema_field(RouteGeometrySerializer)
     def get_route(self, result: TripResult) -> dict:
         return {
             "type": "LineString",
             "coordinates": [[round(lng, 5), round(lat, 5)] for lat, lng in result.plan.route_points],
         }
 
+    @extend_schema_field(serializers.URLField)
     def get_map_url(self, result: TripResult) -> str:
         request = self.context["request"]
         return request.build_absolute_uri(f"{reverse('route-map')}?{request.GET.urlencode()}")
 
+    @extend_schema_field(MetaSerializer)
     def get_meta(self, result: TripResult) -> dict:
         return {
             "routing_api_calls": result.stats.routing_api_calls,

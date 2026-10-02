@@ -208,6 +208,17 @@ class RouteApiTests(TestCase):
         response = self.client.get(reverse("route-map"), {"start": "Honolulu, HI", "finish": FINISH})
         self.assertEqual(response.headers["Referrer-Policy"], "strict-origin-when-cross-origin")
 
+    def test_openapi_schema_describes_the_route_endpoint(self):
+        response = self.client.get(reverse("schema"), {"format": "json"})
+        self.assertEqual(response.status_code, 200)
+        operation = response.json()["paths"]["/api/route/"]["get"]
+        parameters = {parameter["name"] for parameter in operation["parameters"]}
+        self.assertEqual(parameters, {"start", "finish", "stop_penalty", "start_fuel_gallons"})
+        self.assertLessEqual({"200", "400", "422", "502", "503", "504"}, set(operation["responses"]))
+
+    def test_docs_page_is_served(self):
+        self.assertEqual(self.client.get(reverse("docs")).status_code, 200)
+
     def test_map_page_shows_errors(self):
         response = self.client.get(reverse("route-map"), {"start": "Honolulu, HI", "finish": FINISH})
         self.assertEqual(response.status_code, 400)
