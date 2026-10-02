@@ -1,0 +1,278 @@
+{
+  "info": {
+    "name": "Fuel Route Planner",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://127.0.0.1:8000"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Cross-country: New York to Los Angeles",
+      "request": {
+        "method": "GET",
+        "description": "Long route with several fuel stops. Check meta.routing_api_calls (1 the first time, 0 when repeated).",
+        "url": {
+          "raw": "{{base_url}}/api/route/?start=New York, NY&finish=Los Angeles, CA",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "route",
+            ""
+          ],
+          "query": [
+            {
+              "key": "start",
+              "value": "New York, NY"
+            },
+            {
+              "key": "finish",
+              "value": "Los Angeles, CA"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "2. Same trip, cheapest possible (no stop penalty)",
+      "request": {
+        "method": "GET",
+        "description": "Reuses the cached route: zero routing calls. Many more stops, slightly lower cost.",
+        "url": {
+          "raw": "{{base_url}}/api/route/?start=New York, NY&finish=Los Angeles, CA&stop_penalty=0",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "route",
+            ""
+          ],
+          "query": [
+            {
+              "key": "start",
+              "value": "New York, NY"
+            },
+            {
+              "key": "finish",
+              "value": "Los Angeles, CA"
+            },
+            {
+              "key": "stop_penalty",
+              "value": "0"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "3. Same trip, fewer stops",
+      "request": {
+        "method": "GET",
+        "description": "Higher penalty per stop: fewer stops, slightly higher cost.",
+        "url": {
+          "raw": "{{base_url}}/api/route/?start=New York, NY&finish=Los Angeles, CA&stop_penalty=25",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "route",
+            ""
+          ],
+          "query": [
+            {
+              "key": "start",
+              "value": "New York, NY"
+            },
+            {
+              "key": "finish",
+              "value": "Los Angeles, CA"
+            },
+            {
+              "key": "stop_penalty",
+              "value": "25"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "4. Mid-length: Dallas to Chicago",
+      "request": {
+        "method": "GET",
+        "description": "",
+        "url": {
+          "raw": "{{base_url}}/api/route/?start=Dallas, TX&finish=Chicago, IL",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "route",
+            ""
+          ],
+          "query": [
+            {
+              "key": "start",
+              "value": "Dallas, TX"
+            },
+            {
+              "key": "finish",
+              "value": "Chicago, IL"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "5. Short trip under one tank: Austin to Houston",
+      "request": {
+        "method": "GET",
+        "description": "",
+        "url": {
+          "raw": "{{base_url}}/api/route/?start=Austin, TX&finish=Houston, TX",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "route",
+            ""
+          ],
+          "query": [
+            {
+              "key": "start",
+              "value": "Austin, TX"
+            },
+            {
+              "key": "finish",
+              "value": "Houston, TX"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "6. ZIP code and coordinates as input",
+      "request": {
+        "method": "GET",
+        "description": "",
+        "url": {
+          "raw": "{{base_url}}/api/route/?start=10001&finish=41.8781,-87.6298",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "route",
+            ""
+          ],
+          "query": [
+            {
+              "key": "start",
+              "value": "10001"
+            },
+            {
+              "key": "finish",
+              "value": "41.8781,-87.6298"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "7. Starting with a full tank",
+      "request": {
+        "method": "GET",
+        "description": "The 50 gallons already in the tank are not charged.",
+        "url": {
+          "raw": "{{base_url}}/api/route/?start=Dallas, TX&finish=Chicago, IL&start_fuel_gallons=50",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "route",
+            ""
+          ],
+          "query": [
+            {
+              "key": "start",
+              "value": "Dallas, TX"
+            },
+            {
+              "key": "finish",
+              "value": "Chicago, IL"
+            },
+            {
+              "key": "start_fuel_gallons",
+              "value": "50"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "8. Error: outside the supported area",
+      "request": {
+        "method": "GET",
+        "description": "Returns 400 with a reason.",
+        "url": {
+          "raw": "{{base_url}}/api/route/?start=Honolulu, HI&finish=Los Angeles, CA",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "route",
+            ""
+          ],
+          "query": [
+            {
+              "key": "start",
+              "value": "Honolulu, HI"
+            },
+            {
+              "key": "finish",
+              "value": "Los Angeles, CA"
+            }
+          ]
+        }
+      }
+    },
+    {
+      "name": "9. Error: unknown town",
+      "request": {
+        "method": "GET",
+        "description": "Returns 400.",
+        "url": {
+          "raw": "{{base_url}}/api/route/?start=Nowhereville, TX&finish=Dallas, TX",
+          "host": [
+            "{{base_url}}"
+          ],
+          "path": [
+            "api",
+            "route",
+            ""
+          ],
+          "query": [
+            {
+              "key": "start",
+              "value": "Nowhereville, TX"
+            },
+            {
+              "key": "finish",
+              "value": "Dallas, TX"
+            }
+          ]
+        }
+      }
+    }
+  ]
+}
