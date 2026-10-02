@@ -1,6 +1,7 @@
 """Django settings for the fuel route planner."""
 
 import os
+import sys
 from pathlib import Path
 from urllib.parse import urlparse
 
@@ -96,11 +97,25 @@ REST_FRAMEWORK = {
     "EXCEPTION_HANDLER": "routing.errors.api_exception_handler",
 }
 
+LOGGING = {
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {"plain": {"format": "%(asctime)s %(levelname)s %(name)s: %(message)s"}},
+    "handlers": {"console": {"class": "logging.StreamHandler", "formatter": "plain"}},
+    "root": {"handlers": ["console"], "level": "WARNING"},
+    "loggers": {
+        "routing": {"handlers": ["console"], "level": os.environ.get("LOG_LEVEL", "INFO"), "propagate": False},
+    },
+}
+
 LANGUAGE_CODE = "en-us"
 TIME_ZONE = "UTC"
 USE_I18N = False
 USE_TZ = True
 STATIC_URL = "static/"
+
+if "test" in sys.argv:
+    LOGGING["loggers"]["routing"]["level"] = "CRITICAL"  # keep test output readable
 
 # --- Route planner settings -------------------------------------------------
 

@@ -1,5 +1,7 @@
 """Translate planning failures into HTTP responses, in one place."""
 
+import logging
+
 from rest_framework import status
 from rest_framework.exceptions import ValidationError
 from rest_framework.response import Response
@@ -9,6 +11,8 @@ from routing.services.corridor import StationsNotLoaded
 from routing.services.locations import LocationError
 from routing.services.optimizer import NoFeasiblePlan
 from routing.services.osrm import RoutingError
+
+logger = logging.getLogger(__name__)
 
 
 def error_for(exc: Exception) -> tuple[int, dict] | None:
@@ -36,4 +40,6 @@ def api_exception_handler(exc: Exception, context: dict) -> Response | None:
     if mapped is None:
         return exception_handler(exc, context)
     code, body = mapped
+    if code >= 500:
+        logger.warning("Request failed with %d: %s", code, body["error"])
     return Response(body, status=code)

@@ -4,6 +4,7 @@ This module only orchestrates. Each step lives in its own module and knows
 nothing about HTTP or JSON.
 """
 
+import logging
 import time
 from collections.abc import Iterator
 from contextlib import contextmanager
@@ -18,6 +19,8 @@ from routing.services.locations import Location, LocationError, resolve_location
 from routing.services.optimizer import FuelPoint, NoFeasiblePlan, Purchase, plan_fuel_stops
 from routing.services.osrm import Route, fetch_route
 from routing.services.trip import FuelStop, PlanningStats, TripPlan, TripResult
+
+logger = logging.getLogger(__name__)
 
 CENT = Decimal("0.01")
 
@@ -64,6 +67,16 @@ def plan_trip(start: str, finish: str, stop_penalty: float, start_fuel_gallons: 
         routing_api_calls=0 if route_cache_hit else 1,
         route_cache_hit=route_cache_hit,
         timings_ms=watch.finish(),
+    )
+    logger.info(
+        "Planned %s -> %s: %.0f miles, %d stops, $%s, routing_calls=%d, %.0f ms",
+        origin.name,
+        destination.name,
+        plan.distance_miles,
+        plan.stop_count,
+        plan.total_cost,
+        stats.routing_api_calls,
+        stats.timings_ms["total"],
     )
     return TripResult(plan=plan, stats=stats)
 
@@ -155,6 +168,7 @@ def _choose_stops(
         except NoFeasiblePlan:
             if width == widths[-1]:
                 raise
+            logger.info("No feasible plan within %.0f miles of the route; widening the corridor", width)
     raise AssertionError("unreachable")  # the loop always returns or raises
 
 

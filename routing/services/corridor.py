@@ -1,5 +1,6 @@
 """Find fuel stations near a route, using a grid index held in memory."""
 
+import logging
 import math
 from collections import defaultdict
 from dataclasses import dataclass
@@ -8,6 +9,8 @@ from functools import lru_cache
 
 from routing.models import FuelStation
 from routing.services.geometry import Point, haversine_miles
+
+logger = logging.getLogger(__name__)
 
 CELL_DEGREES = 0.25
 MILES_PER_DEGREE_LATITUDE = 69.0
@@ -111,4 +114,5 @@ def station_index() -> StationIndex:
     if not stations:
         station_index.cache_clear()  # do not remember an empty table
         raise StationsNotLoaded("No fuel stations are loaded. Run: python manage.py load_fuel_stations")
+    logger.info("Station index built with %d stations", len(stations))
     return StationIndex(stations)

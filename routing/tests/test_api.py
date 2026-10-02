@@ -181,6 +181,14 @@ class RouteApiTests(TestCase):
         self.assertEqual(response.status_code, 503)
         self.assertIn("load_fuel_stations", response.json()["error"])
 
+    def test_planning_is_logged(self):
+        with (
+            patch("routing.services.planner.fetch_route", side_effect=fake_route),
+            self.assertLogs("routing.services.planner", level="INFO") as logs,
+        ):
+            self.get()
+        self.assertIn("routing_calls=1", logs.output[0])
+
     def test_routing_failures_map_to_gateway_errors(self):
         with patch("routing.services.planner.fetch_route", side_effect=RoutingError("down")):
             self.assertEqual(self.get().status_code, 502)
