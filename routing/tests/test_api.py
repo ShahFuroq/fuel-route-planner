@@ -169,6 +169,18 @@ class RouteApiTests(TestCase):
             self.assertEqual(self.client.get(self.url, {"start": START}).status_code, 400)
             self.assertEqual(mock_fetch.call_count, 0)
 
+    def test_validation_errors_name_the_field(self):
+        body = self.client.get(self.url, {"start": START}).json()
+        self.assertEqual(body["error"], "Invalid parameters.")
+        self.assertIn("finish", body["details"])
+
+    def test_missing_station_data_returns_503_with_instructions(self):
+        FuelStation.objects.all().delete()
+        with patch("routing.services.planner.fetch_route", side_effect=fake_route):
+            response = self.get()
+        self.assertEqual(response.status_code, 503)
+        self.assertIn("load_fuel_stations", response.json()["error"])
+
     def test_routing_failures_map_to_gateway_errors(self):
         with patch("routing.services.planner.fetch_route", side_effect=RoutingError("down")):
             self.assertEqual(self.get().status_code, 502)

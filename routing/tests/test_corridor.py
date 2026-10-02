@@ -1,8 +1,8 @@
 from decimal import Decimal
 
-from django.test import SimpleTestCase
+from django.test import SimpleTestCase, TestCase
 
-from routing.services.corridor import Station, StationIndex
+from routing.services.corridor import Station, StationIndex, StationsNotLoaded, station_index
 from routing.services.geometry import haversine_miles
 
 
@@ -54,3 +54,10 @@ class StationIndexTests(SimpleTestCase):
         self.assertEqual(station.opis_id, 1)
         self.assertAlmostEqual(distance, 69.0, delta=1.0)
 
+
+class StationIndexLoadingTests(TestCase):
+    def test_an_empty_table_raises_a_clear_error(self):
+        station_index.cache_clear()
+        self.addCleanup(station_index.cache_clear)
+        with self.assertRaisesMessage(StationsNotLoaded, "load_fuel_stations"):
+            station_index()

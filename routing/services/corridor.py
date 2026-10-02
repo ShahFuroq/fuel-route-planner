@@ -16,6 +16,10 @@ SAMPLE_EVERY_MILES = 1.0
 STATION_FIELDS = ("opis_id", "name", "address", "city", "state", "price", "latitude", "longitude")
 
 
+class StationsNotLoaded(Exception):
+    """The station table is empty; the load command has not been run."""
+
+
 @dataclass(frozen=True)
 class Station:
     opis_id: int
@@ -104,4 +108,7 @@ class StationIndex:
 def station_index() -> StationIndex:
     """Build the index from the database on first use, once per process."""
     stations = [Station(**row) for row in FuelStation.objects.values(*STATION_FIELDS)]
+    if not stations:
+        station_index.cache_clear()  # do not remember an empty table
+        raise StationsNotLoaded("No fuel stations are loaded. Run: python manage.py load_fuel_stations")
     return StationIndex(stations)
