@@ -11,17 +11,55 @@ from functools import lru_cache
 from django.conf import settings
 
 STATE_NAMES = {
-    "alabama": "AL", "arizona": "AZ", "arkansas": "AR", "california": "CA", "colorado": "CO",
-    "connecticut": "CT", "delaware": "DE", "district of columbia": "DC", "florida": "FL",
-    "georgia": "GA", "idaho": "ID", "illinois": "IL", "indiana": "IN", "iowa": "IA",
-    "kansas": "KS", "kentucky": "KY", "louisiana": "LA", "maine": "ME", "maryland": "MD",
-    "massachusetts": "MA", "michigan": "MI", "minnesota": "MN", "mississippi": "MS",
-    "missouri": "MO", "montana": "MT", "nebraska": "NE", "nevada": "NV", "new hampshire": "NH",
-    "new jersey": "NJ", "new mexico": "NM", "new york": "NY", "north carolina": "NC",
-    "north dakota": "ND", "ohio": "OH", "oklahoma": "OK", "oregon": "OR", "pennsylvania": "PA",
-    "rhode island": "RI", "south carolina": "SC", "south dakota": "SD", "tennessee": "TN",
-    "texas": "TX", "utah": "UT", "vermont": "VT", "virginia": "VA", "washington": "WA",
-    "west virginia": "WV", "wisconsin": "WI", "wyoming": "WY",
+    "alabama": "AL",
+    "arizona": "AZ",
+    "arkansas": "AR",
+    "california": "CA",
+    "colorado": "CO",
+    "connecticut": "CT",
+    "delaware": "DE",
+    "district of columbia": "DC",
+    "florida": "FL",
+    "georgia": "GA",
+    "idaho": "ID",
+    "illinois": "IL",
+    "indiana": "IN",
+    "iowa": "IA",
+    "kansas": "KS",
+    "kentucky": "KY",
+    "louisiana": "LA",
+    "maine": "ME",
+    "maryland": "MD",
+    "massachusetts": "MA",
+    "michigan": "MI",
+    "minnesota": "MN",
+    "mississippi": "MS",
+    "missouri": "MO",
+    "montana": "MT",
+    "nebraska": "NE",
+    "nevada": "NV",
+    "new hampshire": "NH",
+    "new jersey": "NJ",
+    "new mexico": "NM",
+    "new york": "NY",
+    "north carolina": "NC",
+    "north dakota": "ND",
+    "ohio": "OH",
+    "oklahoma": "OK",
+    "oregon": "OR",
+    "pennsylvania": "PA",
+    "rhode island": "RI",
+    "south carolina": "SC",
+    "south dakota": "SD",
+    "tennessee": "TN",
+    "texas": "TX",
+    "utah": "UT",
+    "vermont": "VT",
+    "virginia": "VA",
+    "washington": "WA",
+    "west virginia": "WV",
+    "wisconsin": "WI",
+    "wyoming": "WY",
 }
 # The fuel price file covers the 48 contiguous states, so routing is limited to them.
 SUPPORTED_STATES = frozenset(STATE_NAMES.values())
@@ -115,9 +153,7 @@ def resolve_location(query: str) -> Location:
         return Location(query=text, name=f"{place}, {state}", latitude=lat, longitude=lng)
 
     if "," not in text:
-        raise LocationError(
-            f"Could not read '{text}'. Use 'City, ST', a 5-digit ZIP code, or 'lat,lng'."
-        )
+        raise LocationError(f"Could not read '{text}'. Use 'City, ST', a 5-digit ZIP code, or 'lat,lng'.")
     city, _, state_text = text.rpartition(",")
     state_text = state_text.strip()
     state = STATE_NAMES.get(state_text.lower(), state_text.upper())

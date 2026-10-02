@@ -1,0 +1,19 @@
+[tool.ruff]
+line-length = 120
+target-version = "py312"
+extend-exclude = ["routing/migrations"]
+
+[tool.ruff.lint]
+select = [
+    "E",   # pycodestyle
+    "F",   # pyflakes
+    "I",   # import order
+    "B",   # likely bugs
+    "UP",  # modern Python syntax
+    "SIM", # simplifications
+    "C4",  # comprehensions
+    "DJ",  # Django conventions
+]
+
+[tool.ruff.lint.isort]
+known-first-party = ["config", "routing"]

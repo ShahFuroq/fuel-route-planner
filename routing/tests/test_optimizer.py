@@ -1,4 +1,5 @@
 import random
+from itertools import pairwise
 
 from django.test import SimpleTestCase
 
@@ -82,7 +83,7 @@ class PlanFuelStopsTests(SimpleTestCase):
         points = [FuelPoint(0, 3.2)] + [FuelPoint(m, random.uniform(2.8, 4.0)) for m in miles] + [FuelPoint(3000, None)]
         purchases = plan_fuel_stops(points, tank_range=500, mpg=10)
         stops = [points[p.index].mile for p in purchases] + [3000]
-        self.assertTrue(all(b - a <= 500 + 1e-6 for a, b in zip(stops, stops[1:])))
+        self.assertTrue(all(b - a <= 500 + 1e-6 for a, b in pairwise(stops)))
         self.assertAlmostEqual(sum(p.gallons for p in purchases), 300.0, places=6)
 
     def test_unreachable_gap_is_reported_with_its_location(self):
@@ -94,6 +95,7 @@ class PlanFuelStopsTests(SimpleTestCase):
     def test_stop_penalty_reduces_the_number_of_stops(self):
         random.seed(3)
         miles = sorted(random.uniform(1, 1990) for _ in range(80))
+
         def build(penalty):
             random.seed(11)
             return (
@@ -101,6 +103,7 @@ class PlanFuelStopsTests(SimpleTestCase):
                 + [FuelPoint(m, random.uniform(2.8, 3.8), penalty) for m in miles]
                 + [FuelPoint(2000, None)]
             )
+
         free = plan_fuel_stops(build(0.0), tank_range=500, mpg=10)
         penalised = plan_fuel_stops(build(10.0), tank_range=500, mpg=10)
         self.assertLess(len(penalised), len(free))

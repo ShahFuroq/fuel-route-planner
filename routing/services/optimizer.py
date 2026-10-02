@@ -42,9 +42,7 @@ class Purchase:
     gallons: float
 
 
-def plan_fuel_stops(
-    points: list[FuelPoint], tank_range: float, mpg: float, start_range: float = 0.0
-) -> list[Purchase]:
+def plan_fuel_stops(points: list[FuelPoint], tank_range: float, mpg: float, start_range: float = 0.0) -> list[Purchase]:
     """Return the purchases of the cheapest plan.
 
     points[0] is the start and points[-1] the destination, in route order.

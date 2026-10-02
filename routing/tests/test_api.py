@@ -1,4 +1,5 @@
 from decimal import Decimal
+from itertools import pairwise
 from unittest.mock import patch
 
 from django.core.cache import cache
@@ -79,7 +80,7 @@ class RouteApiTests(TestCase):
     def test_stops_respect_the_vehicle_range(self, mock_fetch):
         stops = self.get().json()["stops"]
         marks = [stop["mile_marker"] for stop in stops] + [ROUTE_MILES]
-        self.assertTrue(all(later - earlier <= 500.5 for earlier, later in zip(marks, marks[1:])))
+        self.assertTrue(all(later - earlier <= 500.5 for earlier, later in pairwise(marks)))
         self.assertTrue(all(stop["gallons"] <= 50.0 for stop in stops))
 
     @patch("routing.services.planner.fetch_route", side_effect=fake_route)

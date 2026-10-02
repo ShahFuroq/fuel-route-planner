@@ -1,6 +1,7 @@
 """Small geometry helpers: polyline decoding and distances along a route."""
 
 import math
+from itertools import pairwise
 
 EARTH_DIAMETER_MILES = 7917.5
 Point = tuple[float, float]  # (latitude, longitude)
@@ -48,7 +49,7 @@ def mile_markers(points: list[Point], total_miles: float) -> list[float]:
     distance the routing API reports, so the markers are scaled to match it.
     """
     markers = [0.0]
-    for (lat1, lng1), (lat2, lng2) in zip(points, points[1:]):
+    for (lat1, lng1), (lat2, lng2) in pairwise(points):
         markers.append(markers[-1] + haversine_miles(lat1, lng1, lat2, lng2))
     raw_total = markers[-1]
     if raw_total == 0:
